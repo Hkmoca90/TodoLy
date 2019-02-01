@@ -9,13 +9,14 @@
 import UIKit
 
 class TodoListViewController: UITableViewController {
-    let defaults = UserDefaults.standard
+
     var itemArray = [ItemList]()
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+
     override func viewDidLoad() {
         super.viewDidLoad()
-//        if let items = defaults.array(forKey: "TodoListArray") as? [ItemList] {
-//            itemArray = items
-//        }
+        loadItems()
+
     }
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem){
@@ -23,7 +24,7 @@ class TodoListViewController: UITableViewController {
         let alert = UIAlertController.init(title: "Add New todoey Item", message: "", preferredStyle: .alert)
         let action = UIAlertAction.init(title: "Add Item", style: .default) { (action) in
             self.itemArray.append(ItemList(title: textFiel.text!, isCheck: false))
-
+            self.saveItems()
             self.tableView.reloadData()
         }
         alert.addTextField { (alertTextField) in
@@ -49,8 +50,31 @@ class TodoListViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         itemArray[indexPath.row].isCheck = !itemArray[indexPath.row].isCheck!
-        tableView.reloadData()
+        saveItems()
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error encodign item array, \(error)")
+        }
+        tableView.reloadData()
+    }
+
+    func loadItems(){
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do{
+                itemArray = try decoder.decode([ItemList].self, from: data)
+            } catch {
+                print("Error encodign item array, \(error)")
+            }
+        }
+
     }
 }
 

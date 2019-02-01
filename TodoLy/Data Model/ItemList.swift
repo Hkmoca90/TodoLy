@@ -8,7 +8,7 @@
 
 import Foundation
 
-class ItemList {
+class ItemList: Codable {
     var title: String?
     var isCheck: Bool?
 
